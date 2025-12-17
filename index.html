@@ -10,51 +10,44 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">  
     <style>  
         :root { --primary-bg: #F9FAFB; --secondary-bg: #FFFFFF; --border-color: #E5E7EB; --text-color: #374151; --brand-color: #4F46E5; --user-bubble-bg: #EEF2FF; --ai-bubble-bg: #F3F4F6; --shadow: 0 1px 3px rgba(0,0,0,0.1); }  
-        [data-theme="dark"] { --primary-bg: #0F172A; --secondary-bg: #1E293B; --border-color: #334155; --text-color: #F1F5F9; --brand-color: #6366F1; --user-bubble-bg: #475569; --ai-bubble-bg: #334155; }  
         * { margin: 0; padding: 0; box-sizing: border-box; }  
         body { font-family: 'Cairo', sans-serif; background: var(--primary-bg); color: var(--text-color); min-height: 100vh; display: flex; flex-direction: column; direction: rtl; }  
         .header { background: var(--secondary-bg); border-bottom: 1px solid var(--border-color); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }  
         .app-name { font-size: 20px; font-weight: 700; color: var(--brand-color); display: flex; align-items: center; gap: 8px; }  
-        .chat-container { flex-grow: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 20px; }  
-        .message { display: flex; align-items: flex-start; gap: 16px; width: 100%; max-width: 900px; margin-bottom: 10px; }  
+        .chat-container { flex-grow: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }  
+        .message { display: flex; align-items: flex-start; gap: 16px; width: 100%; }  
         .message.user-message { justify-content: flex-end; }  
-        .message-bubble { max-width: 80%; padding: 14px 18px; border-radius: 15px; box-shadow: var(--shadow); line-height: 1.6; }  
-        .user-message .message-bubble { background: var(--user-bubble-bg); color: #1e1e1e; border-bottom-left-radius: 4px; }  
+        .message-bubble { max-width: 80%; padding: 14px 18px; border-radius: 15px; box-shadow: var(--shadow); line-height: 1.6; word-wrap: break-word; }  
+        .user-message .message-bubble { background: var(--user-bubble-bg); border-bottom-left-radius: 4px; }  
         .ai-message .message-bubble { background: var(--ai-bubble-bg); border-bottom-right-radius: 4px; }  
         .input-container { background: var(--secondary-bg); border-top: 1px solid var(--border-color); padding: 15px 24px; display: flex; align-items: center; gap: 12px; }  
         .message-input { flex-grow: 1; padding: 12px 20px; border: 2px solid var(--border-color); border-radius: 25px; outline: none; font-family: inherit; }  
-        .send-btn { background: var(--brand-color); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; transition: 0.3s; }  
-        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        #imagePreviewContainer img { max-height: 100px; border-radius: 10px; margin: 10px; }
+        .send-btn { background: var(--brand-color); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; transition: 0.3s; }
     </style>  
 </head>  
 <body>  
     <div class="header">  
         <div class="app-name"><i class="fas fa-bolt"></i> Whizz.ink</div>  
     </div>  
-  
     <div class="chat-container" id="chatContainer">  
         <div id="welcomeMessage" style="text-align:center; padding-top:100px; color: var(--brand-color);">  
             <i class="fas fa-robot fa-3x"></i>  
-            <h2>مرحباً aladdan، أنا جاهز للخدمة!</h2>  
+            <h2>مرحباً aladdan، تطبيقك جاهز الآن!</h2>  
         </div>  
     </div>  
-
-    <div id="imagePreviewContainer" style="display:none; background: #eee; text-align: center;">
-        <img id="imagePreview" src="">
-        <button onclick="removeImage()" style="color:red; cursor:pointer; background:none; border:none;">حذف الصورة ×</button>
+    <div id="imagePreviewContainer" style="display:none; background: #eee; text-align: center; padding: 10px;">
+        <img id="imagePreview" src="" style="max-height: 100px; border-radius: 10px;">
+        <button onclick="removeImage()" style="color:red; cursor:pointer; background:none; border:none; margin-right:10px;">حذف ×</button>
     </div>
-  
     <div class="input-container">  
         <button onclick="document.getElementById('imageInput').click()" style="background:none; border:none; font-size: 20px; cursor:pointer;"><i class="fas fa-image"></i></button>  
         <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImage(event)">  
         <input type="text" class="message-input" id="messageInput" placeholder="اسألني أي شيء..." onkeypress="if(event.key === 'Enter') sendMessage()">  
         <button class="send-btn" id="sendBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>  
     </div>  
-  
     <script>  
-        // الرابط الذي قمنا بتفعيله في Cloudflare
-        const API_URL = "https://gemini-proxy-adil.adillaghrifi5.workers.dev/"; 
+        const API_KEY = "AIzaSyBPsvZa54HxARTiwE3drDnV25L7S4xVV7k"; 
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
         let currentImageBase64 = null;
 
         function handleImage(e) {
@@ -67,48 +60,39 @@
             };
             reader.readAsDataURL(file);
         }
-
         function removeImage() {
             currentImageBase64 = null;
             document.getElementById('imagePreviewContainer').style.display = 'none';
         }
-
         async function sendMessage() {  
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
             if (!text && !currentImageBase64) return;
-
             addMessage(text, 'user', currentImageBase64);
             input.value = "";
             document.getElementById('welcomeMessage').style.display = 'none';
+            const tempImg = currentImageBase64;
             removeImage();
-
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: text || "حلل هذه الصورة" }, ...(currentImageBase64 ? [{ inlineData: { mimeType: "image/jpeg", data: currentImageBase64 }}] : [])] }]
+                        contents: [{ parts: [{ text: text || "حلل الصورة" }, ...(tempImg ? [{ inlineData: { mimeType: "image/jpeg", data: tempImg }}] : [])] }]
                     })
                 });
-
                 const data = await response.json();
-                // استخراج الرد بذكاء من Gemini
                 const aiResponse = data.candidates[0].content.parts[0].text;
                 addMessage(aiResponse, 'ai');
             } catch (error) {
-                addMessage("عذراً aladdan، واجهت مشكلة في الاتصال. تأكد من مفتاح الـ API.", 'ai');
+                addMessage("عذراً aladdan، حدث خطأ. تأكد أن الرابط المسموح به في جوجل كلاود هو نفس رابط موقعك الحالي.", 'ai');
             }
         }
-
         function addMessage(content, sender, image = null) {
             const container = document.getElementById('chatContainer');
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${sender}-message`;
-            msgDiv.innerHTML = `<div class="message-bubble">
-                ${image ? `<img src="data:image/jpeg;base64,${image}" style="max-width:100%; border-radius:10px;"><br>` : ''}
-                ${content}
-            </div>`;
+            msgDiv.innerHTML = `<div class="message-bubble">${image ? `<img src="data:image/jpeg;base64,${image}" style="max-width:100%; border-radius:10px;"><br>` : ''}${content}</div>`;
             container.appendChild(msgDiv);
             container.scrollTop = container.scrollHeight;
         }
